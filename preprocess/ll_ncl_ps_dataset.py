@@ -1,4 +1,4 @@
-from lt_udn_dataset import LtUdnDataset
+from preprocess.lt_udn_dataset import LtUdnDataset
 from transformers import BertTokenizer, AlbertForSequenceClassification
 import torch
 
