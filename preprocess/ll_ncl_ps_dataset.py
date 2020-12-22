@@ -19,14 +19,16 @@ class LlNclPs(LtUdnDataset):
         self.label_map = {'LL':0, 'NCL':1, 'PS':2}
         self.tokenizer = tokenizer
     
-    def get_required_label_dataset(self):
-        self.df = self.df[self.df['label']!='X']
-        self.df = self.df[self.df['label'].isin(['LL', 'NCL', 'PS'])]
-        self.df = self.df.drop(['keyWord'], axis=1)
+    # def get_required_label_dataset(self):
+    #     self.df = self.df[self.df['label']!='X']
+    #     self.df = self.df[self.df['label'].isin(['LL', 'NCL', 'PS'])]
+    #     self.df = self.df.drop(['keyWord'], axis=1)
         # print(self.df)
 
     def __getitem__(self, idx):
         label, text = self.df.iloc[idx, :].values
+        print('getitem: ', text)
+        print('getitem text type: ', type(text))
         label_id = self.label_map[label]
         label_tensor = torch.tensor(label_id)
         word_pieces = ['[CLS]']

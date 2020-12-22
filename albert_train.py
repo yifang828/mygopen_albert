@@ -1,12 +1,19 @@
 from transformers import BertTokenizer, AlbertForSequenceClassification
 import torch
 from preprocess.ll_ncl_ps_dataset import LlNclPs
+from preprocess.ll_ncl_ps_x_dataset import LlNclPsX
+from preprocess.ll_ncl_others_ps_dataset import LlNclOthersPs
+from preprocess.ll_ncl_others_ps_x_dataset import LlNclOthersPsX
+from preprocess.mygopen import Mygopen
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import time
 
 PRETRAINED_MODEL_NAME = 'voidful/albert_chinese_base'
-NUM_LABELS = 3
+# NUM_LABELS = 3 # LlNclPs
+# NUM_LABELS = 4 # LlNclPsX # LlNclOtheresPs
+# NUM_LABELS = 5
+NUM_LABELS = 2
 
 tokenizer = BertTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)
 model = AlbertForSequenceClassification.from_pretrained(PRETRAINED_MODEL_NAME, num_labels=NUM_LABELS)
@@ -31,11 +38,12 @@ def create_mini_batch(samples):
 # 初始化一個每次回傳64個訓練樣本的DataLoader
 # 利用collate_fn將list of samples 合併成一個 mini-batch是關鍵
 BATCH_SIZE = 64
-trainset = LlNclPs('train', tokenizer=tokenizer)
+# trainset = LlNclPs('train', tokenizer=tokenizer)
+# trainset = LlNclPsX('train', tokenizer=tokenizer)
+# trainset = LlNclOthersPs('train', tokenizer=tokenizer)
+# trainset = LlNclOthersPsX('train', tokenizer=tokenizer)
+trainset = Mygopen('train', tokenizer=tokenizer)
 trainloader =  DataLoader(trainset, batch_size=BATCH_SIZE, collate_fn=create_mini_batch)
-
-data = next(iter(trainloader))
-tokens_tensors, segments_tensors, masks_tensors, label_ids = data
 
 def get_predictions(model, dataloader, compute_acc=False):
     predictions = None
@@ -117,11 +125,38 @@ for epoch in range(EPOCH):
 
 end_time = time.time()
 print('execute_time: ', str(end_time-start_time))
-model.save_pretrained('ll_ncl_ps_albert_base')
+# model.save_pretrained('ll_ncl_ps_albert_base')
+# model.save_pretrained('ll_ncl_ps_x_albert_base')
+# model.save_pretrained('ll_ncl_others_ps_albert_base')
+# model.save_pretrained('ll_ncl_others_ps_x_albert_base')
+model.save_pretrained('mygopen_albert_base')
 
 ### testset
-testset = LlNclPs('test', tokenizer=tokenizer)
+# testset = LlNclPs('test', tokenizer=tokenizer)
+# testset = LlNclPsX('test', tokenizer=tokenizer)
+# testset = LlNclOthersPs('test', tokenizer=tokenizer)
+# testset = LlNclOthersPsX('test', tokenizer=tokenizer)
+testset = Mygopen('test', tokenizer=tokenizer)
+y_test_origin = testset.df.iloc[:,0].values
 testloader =  DataLoader(testset, batch_size=32, collate_fn=create_mini_batch)
-model = AlbertForSequenceClassification.from_pretrained('ll_ncl_ps_albert_base')
-_, test_acc = get_predictions(model, testloader, compute_acc=True)
+# model = AlbertForSequenceClassification.from_pretrained('ll_ncl_ps_albert_base')
+# model = AlbertForSequenceClassification.from_pretrained('ll_ncl_ps_x_albert_base')
+# model = AlbertForSequenceClassification.from_pretrained('ll_ncl_others_ps_albert_base')
+# model = AlbertForSequenceClassification.from_pretrained('ll_ncl_others_ps_x_albert_base')
+model = AlbertForSequenceClassification.from_pretrained('mygopen_albert_base')
+prediction, test_acc = get_predictions(model, testloader, compute_acc=True)
+
+print("======================================")
 print('test accuracy: ',test_acc)
+# f1_score
+print('f1 macro: ',f1_score(y_test_origin, prediction.tolist(), average='macro'))
+print('f1 micro: ',f1_score(y_test_origin, prediction.tolist(), average='micro'))
+print('f1 weighted: ',f1_score(y_test_origin, prediction.tolist(), average='weighted'))
+# precision_score
+print('precision macro: ', precision_score(y_test_origin, prediction.tolist(), average='macro'))
+print('precision micro: ', precision_score(y_test_origin, prediction.tolist(), average='micro'))
+print('precision weighted: ', precision_score(y_test_origin, prediction.tolist(), average='weighted'))
+# recall_score
+print('recall macro: ', recall_score(y_test_origin, prediction.tolist(), average='macro'))
+print('recall micro: ', recall_score(y_test_origin, prediction.tolist(), average='micro'))
+print('recall weighted: ', recall_score(y_test_origin, prediction.tolist(), average='weighted'))
