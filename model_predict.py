@@ -21,6 +21,8 @@ BATCH_SIZE = 64
 # STR = '原來竹子會結果？一般草本植物每年都會開花結果，但是竹子卻不同，從五十年到一百二十年不等，\
 #     視不同品種的竹類而有所差異。由於所有竹類的植物，都不是靠開花結果來繁殖的。而大都是由同一棵竹\
 #     的根部長出新筍繁殖分枝出來，食用的竹筍，就是竹子的根部分株所生出來的新芽。'
+STR = ["很多", "多人", "人不", "不知", "知道", "道雨", "雨天", "天要", "要開", "開頭", "頭燈", "燈、", 
+"、現", "現在", "在知", "知道", "道了", "了要", "要開", "開喔", "喔！"]
 
 # split文章的每個句子 by ',' '。','!','?'
 def splitContext(str):
@@ -77,7 +79,7 @@ def get_predictions(model, dataloader, compute_acc=False):
         for data in dataloader:
             # 將所有tensor 移到GPU上
             if next(model.parameters()).is_cuda:
-                data = [t.to("cuda:0") for t in data if t is not None]
+                data = [t.to("cuda") for t in data if t is not None]
             # 前3個tensors分別為tokens, segments, masks，建議再將這些tensors丟入model時指定對應的參數名稱
             tokens_tensors, segments_tensors, masks_tensors = data[:3]
             outputs = model(input_ids=tokens_tensors, token_type_ids=segments_tensors, attention_mask=masks_tensors)

@@ -7,6 +7,9 @@ from preprocess.ll_ncl_others_ps_x_dataset import LlNclOthersPsX
 from preprocess.mygopen import Mygopen
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 import time
 
 PRETRAINED_MODEL_NAME = 'voidful/albert_chinese_base'
@@ -55,7 +58,7 @@ def get_predictions(model, dataloader, compute_acc=False):
         for data in dataloader:
             # 將所有tensor 移到GPU上
             if next(model.parameters()).is_cuda:
-                data = [t.to("cuda:0") for t in data if t is not None]
+                data = [t.to("cuda") for t in data if t is not None]
             # 前3個tensors分別為tokens, segments, masks，建議再將這些tensors丟入model時指定對應的參數名稱
             tokens_tensors, segments_tensors, masks_tensors = data[:3]
             outputs = model(input_ids=tokens_tensors, token_type_ids=segments_tensors, attention_mask=masks_tensors)
@@ -80,7 +83,7 @@ def get_predictions(model, dataloader, compute_acc=False):
     return predictions
 
 # 讓模型跑在GPU上並取得訓練集的分類準確率
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device: ", device)
 model = model.to(device)
 _, acc = get_predictions(model, trainloader, compute_acc=True)
