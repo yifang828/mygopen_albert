@@ -11,7 +11,7 @@ class MygopenDataset:
     
     def __getitem__(self, idx):
         text = str(self.df.iloc[idx, :].values)[1:-1]
-        print('getitem text: ', text)
+        # print('getitem text: ', text)
         word_pieces = ['[CLS]']
         tokens = self.tokenizer.tokenize(text)
         word_pieces += tokens + ['[SEP]']

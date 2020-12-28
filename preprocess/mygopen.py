@@ -7,9 +7,9 @@ class Mygopen:
         assert mode in ['train', 'test']
         self.mode = mode
         if self.mode == 'train':
-            self.df = pd.read_excel('./data/mygopen_baseline_data.xlsx', engine='openpyxl')
+            self.df = pd.read_excel('./data/mygopen_train.xlsx', engine='openpyxl')
         elif self.mode == 'test':
-            self.df = pd.read_excel('./data/TEST_mygopen_baseline_data.xlsx', engine='openpyxl')
+            self.df = pd.read_excel('./data/mygopen_test.xlsx', engine='openpyxl')
         # required_label
         
         self.len = len(self.df)
@@ -22,7 +22,7 @@ class Mygopen:
         label_tensor = torch.tensor(label_id)
         word_pieces = ['[CLS]']
         tokens = self.tokenizer.tokenize(text)
-        word_pieces += tokens + ['[SEP]']
+        word_pieces += tokens
         len_token = len(word_pieces)
 
         # 將整個token序列轉換成索引序列

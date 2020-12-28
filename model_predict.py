@@ -9,14 +9,14 @@ from preprocess.mygopen_dataset import MygopenDataset
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-# PRETRAINED_MODEL_NAME = 'll_ncl_ps_albert_base'
+PRETRAINED_MODEL_NAME = 'll_ncl_ps_albert_base'
 # PRETRAINED_MODEL_NAME = 'll_ncl_ps_x_albert_base'
 # PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_albert_base'
-PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_x_albert_base'
-# NUM_LABELS = 3
+# PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_x_albert_base'
+NUM_LABELS = 3
 # NUM_LABELS = 4
-NUM_LABELS = 5
-BATCH_SIZE = 64
+# NUM_LABELS = 5
+BATCH_SIZE = 1
 # test
 # STR = '原來竹子會結果？一般草本植物每年都會開花結果，但是竹子卻不同，從五十年到一百二十年不等，\
 #     視不同品種的竹類而有所差異。由於所有竹類的植物，都不是靠開花結果來繁殖的。而大都是由同一棵竹\
@@ -50,7 +50,7 @@ def getContext():
         return result
 context = getContext()
 for k, v in context.items():
-    context[k] = splitContext(v)
+context[k] = splitContext(v)
 print("context size: ", len(context))
 
 def create_mini_batch(samples):

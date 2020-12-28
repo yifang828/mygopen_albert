@@ -1,5 +1,8 @@
 # mygopen_albert
-## ./preprocess 準備各類資料
+## Experi2_BERT_CLS
+1. 取BERT最後一層CLS與Label feature聯集，跑mlp
+2. 取一篇文章last_hidden_state平均與Lable feature聯集，跑mlp
+
 ### gen_mygopen_baseline_dataset.py
 mygopen爬回的資料./data/transfer/rumor.json中每篇的truth,source和./data/transfer/truth.json中source
 如果資料長度大於510則取資料前511個字(BERT本身限制512還要扣除[CLS])匯集起來寫到mygopen_baseline_data.xlsx
