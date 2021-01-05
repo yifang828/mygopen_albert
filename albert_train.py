@@ -40,7 +40,7 @@ def create_mini_batch(samples):
 
 # 初始化一個每次回傳64個訓練樣本的DataLoader
 # 利用collate_fn將list of samples 合併成一個 mini-batch是關鍵
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 # trainset = LlNclPs('train', tokenizer=tokenizer)
 # trainset = LlNclPsX('train', tokenizer=tokenizer)
 # trainset = LlNclOthersPs('train', tokenizer=tokenizer)
@@ -132,7 +132,7 @@ print('execute_time: ', str(end_time-start_time))
 # model.save_pretrained('ll_ncl_ps_x_albert_base')
 # model.save_pretrained('ll_ncl_others_ps_albert_base')
 # model.save_pretrained('ll_ncl_others_ps_x_albert_base')
-model.save_pretrained('mygopen_albert_base')
+model.save_pretrained('mygopen_albert_base_experi2')
 
 ### testset
 # testset = LlNclPs('test', tokenizer=tokenizer)
@@ -141,25 +141,25 @@ model.save_pretrained('mygopen_albert_base')
 # testset = LlNclOthersPsX('test', tokenizer=tokenizer)
 testset = Mygopen('test', tokenizer=tokenizer)
 y_test_origin = testset.df.iloc[:,0].values
-testloader =  DataLoader(testset, batch_size=32, collate_fn=create_mini_batch)
+testloader =  DataLoader(testset, batch_size=8, collate_fn=create_mini_batch)
 # model = AlbertForSequenceClassification.from_pretrained('ll_ncl_ps_albert_base')
 # model = AlbertForSequenceClassification.from_pretrained('ll_ncl_ps_x_albert_base')
 # model = AlbertForSequenceClassification.from_pretrained('ll_ncl_others_ps_albert_base')
 # model = AlbertForSequenceClassification.from_pretrained('ll_ncl_others_ps_x_albert_base')
-model = AlbertForSequenceClassification.from_pretrained('mygopen_albert_base')
+model = AlbertForSequenceClassification.from_pretrained('mygopen_albert_base_experi2')
 prediction, test_acc = get_predictions(model, testloader, compute_acc=True)
 
 print("======================================")
 print('test accuracy: ',test_acc)
 # f1_score
-print('f1 macro: ',f1_score(y_test_origin, prediction.tolist(), average='macro'))
-print('f1 micro: ',f1_score(y_test_origin, prediction.tolist(), average='micro'))
+# print('f1 macro: ',f1_score(y_test_origin, prediction.tolist(), average='macro'))
+# print('f1 micro: ',f1_score(y_test_origin, prediction.tolist(), average='micro'))
 print('f1 weighted: ',f1_score(y_test_origin, prediction.tolist(), average='weighted'))
 # precision_score
-print('precision macro: ', precision_score(y_test_origin, prediction.tolist(), average='macro'))
-print('precision micro: ', precision_score(y_test_origin, prediction.tolist(), average='micro'))
+# print('precision macro: ', precision_score(y_test_origin, prediction.tolist(), average='macro'))
+# print('precision micro: ', precision_score(y_test_origin, prediction.tolist(), average='micro'))
 print('precision weighted: ', precision_score(y_test_origin, prediction.tolist(), average='weighted'))
 # recall_score
-print('recall macro: ', recall_score(y_test_origin, prediction.tolist(), average='macro'))
-print('recall micro: ', recall_score(y_test_origin, prediction.tolist(), average='micro'))
+# print('recall macro: ', recall_score(y_test_origin, prediction.tolist(), average='macro'))
+# print('recall micro: ', recall_score(y_test_origin, prediction.tolist(), average='micro'))
 print('recall weighted: ', recall_score(y_test_origin, prediction.tolist(), average='weighted'))
