@@ -7,23 +7,20 @@ from preprocess.mygopen_dataset import MygopenDataset
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-# PRETRAINED_MODEL_NAME = 'll_ncl_ps_albert_base'
+PRETRAINED_MODEL_NAME = 'll_ncl_ps_albert_base'
 # PRETRAINED_MODEL_NAME = 'll_ncl_ps_x_albert_base'
 # PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_albert_base'
-PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_x_albert_base'
-# NUM_LABELS = 3
+# PRETRAINED_MODEL_NAME = 'll_ncl_others_ps_x_albert_base'
+NUM_LABELS = 3
 # NUM_LABELS = 4
-NUM_LABELS = 5
+# NUM_LABELS = 5
 tokenizer = BertTokenizer.from_pretrained('voidful/albert_chinese_base')
 model = AlbertModel.from_pretrained(PRETRAINED_MODEL_NAME, num_labels=NUM_LABELS)
 sequence_model = AlbertForSequenceClassification.from_pretrained(PRETRAINED_MODEL_NAME, num_labels=NUM_LABELS)
 
-cls_list = []
-tokens_avg_list = []
-results = []
 
-# train_df = pd.read_excel('./data/mygopen_train.xlsx', engine='openpyxl')
-train_df = pd.read_excel('./data/mygopen_test.xlsx', engine='openpyxl')
+# train_df = pd.read_excel('./data/new_mygopen_train.xlsx', engine='openpyxl')
+train_df = pd.read_excel('./data/new_mygopen_test.xlsx', engine='openpyxl')
 train_txt = train_df['context']
 
 # split文章的每個句子 by ',' '。','!','?'
@@ -81,48 +78,71 @@ def get_predictions(model, dataloader, compute_acc=False):
         return predictions, acc
     return predictions
 
-count = 0
-for txt in train_txt:
-    # print(txt)
-    count += 1
-    print('count: ', count)
-    print('len: ', len(txt))
-    inputs = tokenizer(txt)
-    tokens_tensor = inputs['input_ids']
-    input_ids = torch.tensor(tokens_tensor).unsqueeze(0) #batch size 1
+def ngram(context, n):
+    ngram_txt = ''
+    for i in range(0, len(context)-1):
+        ngram_txt += context[i:i+n]
+    return ngram_txt
 
-    output = model(input_ids)
-    tokens_avg = output[0].mean(1)[0].detach().numpy()
-    cls_output = output[1][0].detach().numpy()
-    # print('token_avg: ', tokens_avg)
-    tokens_avg_list.append(tokens_avg)
-    # print('cls_output: ', cls_output)
-    cls_list.append(cls_output)
+def ngram_result_vector(train_txt, n):
+    count = 0
+    cls_list = []
+    tokens_avg_list = []
+    results = []
 
-    ####預測每句label####
-    split_txt = splitContext(txt)
-    target = MygopenDataset(split_txt, tokenizer=tokenizer)
-    targetloader =  DataLoader(target, batch_size=1, collate_fn=create_mini_batch)
-    # 對文章的每個句子(split by ',' '。','!','?')預測
-    result = np.array([0, 0, 0, 0, 0])
-    # label_map = {'LL':0, 'NCL':1, 'PS':2}
-    # label_map = {'LL':0, 'NCL':1, 'OTHERS':2, 'PS':3, 'X':4}
-    
-    # 用分類器來預測測試集
-    predictions = get_predictions(sequence_model, targetloader)
-    # 將預測的label id 轉回 labe文字
-    if predictions is not None:
-        # print(predictions.tolist())
-        for p in predictions.tolist():
-            result[p]+=1 
-    print(result)
-    results.append(result)
+    for txt in train_txt:
+        # print(txt)
+        count += 1
+        print('count: ', count)
+        print('len: ', len(txt))
+        ####2021.01.11 bigram& trigram ####
+        ngram_txt = ngram(txt, n)[:510]
+        # print(ngram_txt)
+        # print('ngram_txt :', len(ngram_txt))
+        inputs = tokenizer(ngram_txt)
+        tokens_tensor = inputs['input_ids']
+        input_ids = torch.tensor(tokens_tensor).unsqueeze(0) #batch size 1
+        # print(input_ids)
+        # print('origin:', ''.join(tokenizer.convert_ids_to_tokens(tokens_tensor)))
 
-train_df['cls'] = cls_list
-train_df['token_avg'] = tokens_avg_list
-train_df['predict_feature'] = results
-# train_df.to_excel('./data/cls_token_avg/train_ll_ncl_others_ps_x.xlsx', engine='xlsxwriter', index=False)
-train_df.to_excel('./data/cls_token_avg/test_ll_ncl_others_ps_x.xlsx', engine='xlsxwriter', index=False)
+        output = model(input_ids)
+        tokens_avg = output[0].mean(1)[0].detach().numpy()
+        cls_output = output[1][0].detach().numpy()
+        # print('token_avg: ', tokens_avg)
+        tokens_avg_list.append(tokens_avg)
+        # print('cls_output: ', cls_output)
+        cls_list.append(cls_output)
+
+        ####預測每句label####
+        split_txt = splitContext(ngram_txt)
+        target = MygopenDataset(split_txt, tokenizer=tokenizer)
+        targetloader =  DataLoader(target, batch_size=1, collate_fn=create_mini_batch)
+        # 對文章的每個句子(split by ',' '。','!','?')預測
+        result = np.array([0, 0, 0])
+        
+        # 用分類器來預測測試集
+        predictions = get_predictions(sequence_model, targetloader)
+        # 將預測的label id 轉回 labe文字
+        if predictions is not None:
+            # print(predictions.tolist())
+            for p in predictions.tolist():
+                result[p]+=1 
+        print(result)
+        results.append(result)
+    return (cls_list, tokens_avg_list, results)
+
+cls_list, tokens_avg_list, results = ngram_result_vector(train_txt,2)[:3]
+train_df['bigram_cls'] = cls_list
+train_df['bigram_token_avg'] = tokens_avg_list
+train_df['bigram_predict_feature'] = results
+
+cls_list, tokens_avg_list, results = ngram_result_vector(train_txt,3)[:3]
+train_df['trigram_cls'] = cls_list
+train_df['trigram_token_avg'] = tokens_avg_list
+train_df['trigram_predict_feature'] = results
+
+# train_df.to_excel('./data/cls_token_avg/train_ngram_ll_ncl_ps.xlsx', engine='xlsxwriter', index=False)
+train_df.to_excel('./data/cls_token_avg/test_ngram_ll_ncl_ps.xlsx', engine='xlsxwriter', index=False)
 
 
 '''

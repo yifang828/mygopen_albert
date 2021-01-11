@@ -14,16 +14,18 @@ from sklearn.metrics import recall_score
 from sklearn.preprocessing import MinMaxScaler
 import seaborn as sns
 
-train_pd = pd.read_excel('./data/cls_token_avg/train_ll_ncl_ps.xlsx', engine='openpyxl')
-test_pd = pd.read_excel('./data/cls_token_avg/test_ll_ncl_ps.xlsx', engine='openpyxl')
+train_pd = pd.read_excel('./data/cls_token_avg/train_ngram_ll_ncl_ps.xlsx', engine='openpyxl')
+test_pd = pd.read_excel('./data/cls_token_avg/test_ngram_ll_ncl_ps.xlsx', engine='openpyxl')
 
 y_train_origin = train_pd['label']
 y_train = np_utils.to_categorical(y_train_origin)
 x_train = train_pd.drop(['label'], axis=1)
 
 train_combine = []
-for c, pred in zip(x_train['cls'], x_train['predict_feature']):
-# for c, pred in zip(x_train['token_avg'], x_train['predict_feature']):
+# for c, pred in zip(x_train['bigram_cls'], x_train['bigram_predict_feature']):
+# for c, pred in zip(x_train['bigram_token_avg'], x_train['bigram_predict_feature']):
+# for c, pred in zip(x_train['trigram_cls'], x_train['trigram_predict_feature']):
+for c, pred in zip(x_train['trigram_token_avg'], x_train['trigram_predict_feature']):
     token_np = np.fromstring(c[1:-1], dtype=np.float, sep=' ')
     pred_np = np.fromstring(pred[1:-1], dtype=np.float, sep=' ')
     train_combine.append(np.concatenate((token_np, pred_np)))
@@ -34,17 +36,19 @@ y_test = np_utils.to_categorical(y_test_origin)
 x_test = test_pd.drop(['label'], axis=1)
 
 test_combine = []
-for c, pred in zip(x_test['cls'], x_test['predict_feature']):
-# for c, pred in zip(x_test['token_avg'], x_test['predict_feature']):
+# for c, pred in zip(x_test['bigram_cls'], x_test['bigram_predict_feature']):
+# for c, pred in zip(x_test['bigram_token_avg'], x_test['bigram_predict_feature']):
+# for c, pred in zip(x_test['trigram_cls'], x_test['trigram_predict_feature']):
+for c, pred in zip(x_test['trigram_token_avg'], x_test['trigram_predict_feature']):
     token_np = np.fromstring(c[1:-1], dtype=np.float, sep=' ')
     pred_np = np.fromstring(pred[1:-1], dtype=np.float, sep=' ')
     test_combine.append(np.concatenate((token_np, pred_np)))
     # test_combine.append(token_np)
 
-train_np = np.array(train_combine)
-test_np = np.array(test_combine)
-# train_np =  MinMaxScaler().fit_transform(np.array(train_combine))
-# test_np =  MinMaxScaler().fit_transform(np.array(test_combine))
+# train_np = np.array(train_combine)
+# test_np = np.array(test_combine)
+train_np =  MinMaxScaler().fit_transform(np.array(train_combine))
+test_np =  MinMaxScaler().fit_transform(np.array(test_combine))
 # '''
 # 建立模型
 callback = EarlyStopping(monitor='loss', patience=3)
@@ -56,7 +60,7 @@ print(model.summary())
 # 訓練模型
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 history = model.fit(x=train_np, y=y_train, validation_split=0.2, batch_size=4, epochs=50, verbose=2, callbacks=[callback])
-# model.save('./model/cls/token_ll_ncl_ps.h5')
+model.save('./model/ngram/token_trigram_ll_ncl_ps.h5')
 
 def show_train_history(history, train, validation):
     plt.plot(history.history[train])
@@ -67,7 +71,6 @@ def show_train_history(history, train, validation):
     plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
 show_train_history(history, 'loss', 'val_loss')
-# show_train_history(history, 'acc', 'val_acc')
 
 # 評估準確率
 print("======================================")

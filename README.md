@@ -1,4 +1,8 @@
 # mygopen_albert
+
+## Experi3_BERT_CLS different activate function 2021/01/11
+bigram and trigram
+
 ## Experi2_BERT_CLS different activate function 2021/01/03
 原先在model_mlp.py中使用relu當activate function
 根據bert原始碼 https://github.com/google-research/bert/blob/master/modeling.py
@@ -24,7 +28,7 @@ mygopen爬回的資料./data/transfer/rumor.json中每篇的truth,source和./dat
 ### albert_train.py
 做albert fine-tune
 
-### model_embedding.py
+### gen_cls_and_token_avg.py
 測試從BERT模型中取出last_hidden_state(batch_size, seq_len, hidden_size), pooler_output(batch_size, hidden_size)
 
 ### model_predict.py

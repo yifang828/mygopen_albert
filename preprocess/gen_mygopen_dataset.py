@@ -2,6 +2,7 @@ import torch
 import pandas as pd
 import json
 import xlsxwriter
+import re
 
 def getContextFromPath(path, mode):
     result = {}
@@ -14,14 +15,20 @@ def getContextFromPath(path, mode):
             print('================start :',count)
             for k, v in data.items():
                 if mode=='rumor' and  k == "truth" and v !="":
-                    labellist.append(1)
-                    contextlist.append(v[:510])
+                    filted = ''.join(re.findall(r'[,，。！!?？\s\u4e00-\u9fff]+', v[:510]))
+                    if filted != "":
+                        labellist.append(1) 
+                        contextlist.append(filted)
                 elif mode=='rumor' and k == "source" and v !="":
-                    labellist.append(0)
-                    contextlist.append(v[:510])
+                    filted = ''.join(re.findall(r'[,，。！!?？\s\u4e00-\u9fff]+', v[:510]))
+                    if filted != "":
+                        labellist.append(0)
+                        contextlist.append(filted)
                 elif mode=='truth' and k == "source" and v !="":
-                    labellist.append(1)
-                    contextlist.append(v[:510])
+                    filted = ''.join(re.findall(r'[,，。！!?？\s\u4e00-\u9fff]+', v[:510]))
+                    if filted != "":
+                        labellist.append(1)
+                        contextlist.append(filted)
             count +=1
         result['label'] = labellist
         print('label size: ', len(labellist))
@@ -41,5 +48,5 @@ train_df = df.sample(frac=0.8)
 print('train label size: ',train_df.groupby('label').size())
 test_df = df.drop(train_df.index)
 print('test label size: ',test_df.groupby('label').size())
-train_df.to_excel('./data/mygopen_train.xlsx', engine='xlsxwriter', index=False)
-test_df.to_excel('./data/mygopen_test.xlsx', engine='xlsxwriter', index=False)
+train_df.to_excel('./data/new_mygopen_train.xlsx', engine='xlsxwriter', index=False)
+test_df.to_excel('./data/new_mygopen_test.xlsx', engine='xlsxwriter', index=False)
